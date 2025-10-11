@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"io/fs"
@@ -10,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func walkStatic() {
@@ -42,7 +44,7 @@ func walkStatic() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			err = ioutil.WriteFile(filepath.Join(*generateStatic, path), data, d.Type().Perm())
+			err = ioutil.WriteFile(filepath.Join(*generateStatic, path), data, 0666)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -76,19 +78,30 @@ func walkStatic() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		var b bytes.Buffer
+		io.Copy(&b, resp.Body)
+		resp.Body.Close()
+		output := b.Bytes()
 
 		var fpath string
 		if d.IsDir() {
 			fpath = filepath.Join(*generateStatic, path, "index.html")
+			output = bytes.ReplaceAll(output, []byte(".slide\">"), []byte(".slide.html\">"))
+			output = bytes.ReplaceAll(output, []byte(".article\">"), []byte(".article.html\">"))
 		} else {
 			fpath = filepath.Join(*generateStatic, path)
+			if strings.HasSuffix(fpath, ".slide") || strings.HasSuffix(fpath, ".article") {
+				fpath += ".html"
+			}
 		}
 		f, err := os.Create(fpath)
 		if err != nil {
 			log.Fatal(err)
 		}
-		io.Copy(f, resp.Body)
-		resp.Body.Close()
+		_, err = f.Write(output)
+		if err != nil {
+			log.Fatal(err)
+		}
 		f.Close()
 		return nil
 	})
@@ -102,13 +115,23 @@ func walkStatic() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	var b bytes.Buffer
+	io.Copy(&b, resp.Body)
+	resp.Body.Close()
+	output := b.Bytes()
+	output = bytes.ReplaceAll(output, []byte(".slide\">"), []byte(".slide.html\">"))
+	output = bytes.ReplaceAll(output, []byte(".article\">"), []byte(".article.html\">"))
+	resp.Body.Close()
 
 	fpath := filepath.Join(*generateStatic, "index.html")
 	f, err := os.Create(fpath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	io.Copy(f, resp.Body)
-	resp.Body.Close()
+	_, err = f.Write(output)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	f.Close()
 }
