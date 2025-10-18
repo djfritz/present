@@ -705,9 +705,6 @@ func renderMarkdown(input []byte) (template.HTML, error) {
 		goldmark.WithRendererOptions(html.WithUnsafe()),
 		goldmark.WithExtensions(
 			extension.GFM,
-			extension.Table,
-			extension.Strikethrough,
-			extension.TaskList,
 		),
 	)
 	reader := text.NewReader(input)

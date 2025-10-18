@@ -1,11 +1,12 @@
 # present
-Modified fork of Go's present tool
+A modified fork of Go's present tool and package.
 
 - Removed golang tracker scripts
 - Removed jquery
 - Removed go playground directive and related scripting
+- Added Github Flavored Markdown (tables, task lists, linkify)
 
-Additionally, I've added a static content generator that walks the present server and generates a static directory of all content. To use this, run the present tool with the `-static` flag:
+Additionally, this fork adds a static content generator that walks the present server and generates a static directory of all content. To use this, run the present tool with the `-static` flag:
 
 `present -content my_content -static static_output`
 
